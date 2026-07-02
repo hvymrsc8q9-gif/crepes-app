@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>Crêpes — Ajusteur</title>
+
+<!-- ===== PWA / iOS "Add to Home Screen" ===== -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Crêpes">
+<meta name="theme-color" content="#F7EFE2">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23C9853A'/%3E%3Ctext x='90' y='118' font-size='90' text-anchor='middle'%3E🥞%3C/text%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  /* ================= VARIABLES ================= */
+  :root {
+    --bg: #F7EFE2;
+    --bg-deep: #F0E4CF;
+    --card: #FFFDF8;
+    --ink: #2B1A0D;
+    --ink-soft: #6E5237;
+    --ink-faint: #A8917A;
+    --accent: #C9853A;
+    --accent-deep: #A5661F;
+    --accent-glow: rgba(201,133,58,0.22);
+    --green: #4A7C59;
+    --danger: #C0392B;
+    --danger-bg: #FDF0EF;
+    --radius-lg: 22px;
+    --radius-md: 14px;
+    --shadow-card: 0 8px 32px rgba(61,35,20,0.10), 0 2px 6px rgba(61,35,20,0.05);
+    --t: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1C1410;
+      --bg-deep: #241A13;
+      --card: #2A1F17;
+      --ink: #F3E8D8;
+      --ink-soft: #C9B294;
+      --ink-faint: #8A7460;
+      --accent: #E8A95A;
+      --accent-deep: #C9853A;
+      --accent-glow: rgba(232,169,90,0.18);
+      --danger-bg: #3A2320;
+      --shadow-card: 0 8px 32px rgba(0,0,0,0.35);
+    }
+  }
+
+  /* ================= BASE ================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-top: var(--safe-top);
+    padding-bottom: calc(var(--safe-bottom) + 2rem);
+    background-image:
+      radial-gradient(ellipse 80% 50% at 15% -5%, var(--accent-glow) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 95% 105%, var(--accent-glow) 0%, transparent 55%);
+    background-attachment: fixed;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Grain texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.35;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.55 0 0 0 0 0.42 0 0 0 0 0.28 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+    z-index: 999;
+  }
+
+  /* ================= HEADER ================= */
+  header {
+    text-align: center;
+    padding: 2.5rem 1.5rem 1.75rem;
+  }
+
+  .badge-eyebrow {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent-deep);
+    background: var(--accent-glow);
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    margin-bottom: 0.9rem;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(2.1rem, 8vw, 3.4rem);
+    font-weight: 900;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+  }
+
+  h1 .accent {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    margin-top: 0.7rem;
+    color: var(--ink-faint);
+    font-size: 0.92rem;
+    font-weight: 300;
+  }
+
+  /* ================= LAYOUT ================= */
+  .container {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 1.1rem;
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 800px) {
+    .container {
+      grid-template-columns: 360px 1fr;
+      align-items: start;
+      gap: 1.5rem;
+    }
+    .col-left { position: sticky; top: 1.5rem; }
+  }
+
+  .col-left, .col-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  /* ================= CARD ================= */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    padding: 1.6rem;
+    box-shadow: var(--shadow-card);
+    border: 1px solid rgba(201,133,58,0.10);
+  }
+
+  .card-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  /* ================= HERO STEPPER ================= */
+  .egg-hero {
+    text-align: center;
+  }
+
+  .egg-count-display {
+    font-family: 'Fraunces', serif;
+    font-size: 4.2rem;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--accent);
+    margin: 0.4rem 0 0.1rem;
+    font-variant-numeric: tabular-nums;
+    transition: transform 0.15s ease;
+  }
+
+  .egg-count-display.pop { animation: pop 0.28s ease; }
+
+  @keyframes pop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.14); }
+    100% { transform: scale(1); }
+  }
+
+  .egg-word {
+    font-size: 0.85rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+  }
+
+  .stepper-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.3rem;
+  }
+
+  .step-btn {
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    border: none;
+    font-size: 1.7rem;
+    font-weight: 400;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-deep);
+    color: var(--accent-deep);
+    transition: transform 0.12s ease, background var(--t);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    box-shadow: inset 0 -2px 0 rgba(61,35,20,0.08);
+  }
+
+  .step-btn:active { transform: scale(0.9); background: var(--accent); color: #fff; }
+
+  #eggs-input {
+    width: 96px;
+    height: 62px;
+    text-align: center;
+    font-family: 'Fraunces', serif;
+    font-size: 1.9rem;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--bg-deep);
+    border: 2px solid transparent;
+    border-radius: var(--radius-md);
+    outline: none;
+    transition: border-color var(--t), box-shadow var(--t);
+    -moz-appearance: textfield;
+  }
+
+  #eggs-input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); }
+  #eggs-input.invalid { border-color: var(--danger); }
+  #eggs-input::-webkit-inner-spin-button, #eggs-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  .input-hint { margin-top: 0.8rem; font-size: 0.78rem; color: var(--ink-faint); }
+
+  .error-msg {
+    display: none;
+    margin-top: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    background: var(--danger-bg);
+    border-left: 3px solid var(--danger);
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: var(--danger);
+    text-align: left;
+  }
+  .error-msg.visible { display: block; }
+
+  .meta-row {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 1.2rem;
+  }
+
+  .meta-chip {
+    flex: 1;
+    padding: 0.65rem 0.5rem;
+    background: var(--bg-deep);
+    border-radius: var(--radius-md);
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+    text-align: center;
+  }
+
+  .meta-chip strong {
+    display: block;
+    font-family: 'Fraunces', serif;
+    font-size: 1.05rem;
+    color: var(--ink);
+    font-weight: 600;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .reset-btn {
+    margin-top: 1rem;
+    width: 100%;
+    padding: 0.8rem;
+    background: transparent;
+    border: 1.5px solid var(--bg-deep);
+    border-radius: var(--radius-md);
+    color: var(--ink-soft);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--t);
+    touch-action: manipulation;
+  }
+  .reset-btn:active { border-color: var(--accent); color: var(--accent); }
+
+  /* ================= INGREDIENTS ================= */
+  .ing-list { display: flex; flex-direction: column; gap: 0.55rem; }
+
+  .ing-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius-md);
+    background: var(--bg-deep);
+    border: 1px solid transparent;
+    transition: background 0.35s, border-color 0.35s;
+  }
+
+  .ing-row.updated {
+    background: var(--accent-glow);
+    border-color: var(--accent);
+    animation: nudge 0.5s ease;
+  }
+
+  @keyframes nudge {
+    0%,100% { transform: translateX(0); }
+    30% { transform: translateX(3px); }
+    60% { transform: translateX(-2px); }
+  }
+
+  .ing-name { display: flex; align-items: center; gap: 0.6rem; font-size: 0.92rem; }
+  .ing-icon { font-size: 1.15rem; width: 26px; text-align: center; }
+
+  .ing-qty {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--accent-deep);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .ing-qty .unit {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 400;
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    margin-left: 3px;
+  }
+
+  .invalid-overlay { display: none; text-align: center; padding: 2rem 1rem; color: var(--ink-faint); font-size: 0.9rem; }
+  .invalid-overlay.visible { display: block; }
+
+  /* ================= STEPS ================= */
+  .steps { list-style: none; counter-reset: s; display: flex; flex-direction: column; gap: 1rem; }
+
+  .steps li {
+    counter-increment: s;
+    display: flex;
+    gap: 0.9rem;
+    font-size: 0.92rem;
+    line-height: 1.65;
+  }
+
+  .steps li::before {
+    content: counter(s);
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: 0.8rem;
+    background: var(--accent);
+    color: #fff;
+    width: 27px; height: 27px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ================= TIPS ================= */
+  .tips-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+  @media (max-width: 480px) { .tips-grid { grid-template-columns: 1fr; } }
+
+  .tip {
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.84rem;
+    line-height: 1.55;
+    background: var(--bg-deep);
+    border-left: 3px solid var(--accent);
+  }
+  .tip:nth-child(2) { border-left-color: var(--green); }
+  .tip:nth-child(3) { border-left-color: #8A9A5B; }
+  .tip:nth-child(4) { border-left-color: var(--accent-deep); }
+
+  .tip-label {
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.3rem;
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+
+  footer {
+    text-align: center;
+    padding: 2rem 1.5rem 0.5rem;
+    font-size: 0.74rem;
+    color: var(--ink-faint);
+    line-height: 1.6;
+  }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<div aria-live="polite" class="sr-only" id="live-region"></div>
+
+<header>
+  <span class="badge-eyebrow">Recette adaptée de Marmiton</span>
+  <h1>Ajusteur de<br><span class="accent">crêpes</span></h1>
+  <p class="subtitle">Le nombre d'œufs pilote toute la recette.</p>
+</header>
+
+<main class="container">
+
+  <div class="col-left">
+    <!-- ==== INPUT ==== -->
+    <section class="card egg-hero" aria-labelledby="input-title">
+      <span class="egg-word" id="input-title">Nombre d'œufs</span>
+      <div class="egg-count-display" id="egg-display" aria-hidden="true">3</div>
+
+      <div class="stepper-row" role="group" aria-label="Ajuster le nombre d'œufs">
+        <button class="step-btn" id="btn-minus" type="button" aria-label="Diminuer">−</button>
+        <input id="eggs-input" type="number" inputmode="numeric" min="1" max="30" value="3"
+               aria-describedby="hint err">
+        <button class="step-btn" id="btn-plus" type="button" aria-label="Augmenter">+</button>
+      </div>
+
+      <p class="input-hint" id="hint">Entier positif · Ex : 2, 4, 6 · Max 30</p>
+      <p class="error-msg" id="err" role="alert"></p>
+
+      <div class="meta-row">
+        <div class="meta-chip">Facteur<strong id="factor-chip">×1,00</strong></div>
+        <div class="meta-chip">≈ Crêpes<strong id="crepes-chip">12</strong></div>
+      </div>
+
+      <button class="reset-btn" id="reset-btn" type="button">↩ Réinitialiser (3 œufs)</button>
+    </section>
+
+    <!-- ==== INGREDIENTS ==== -->
+    <section class="card" aria-labelledby="ing-title">
+      <p class="card-title" id="ing-title">🧾 Ingrédients</p>
+      <div class="ing-list" id="ing-list"></div>
+      <div class="invalid-overlay" id="invalid-overlay">
+        <span style="font-size:1.8rem">⚠️</span><br>Entrez un nombre d'œufs valide pour voir les quantités.
+      </div>
+    </section>
+  </div>
+
+  <div class="col-right">
+    <!-- ==== INSTRUCTIONS ==== -->
+    <section class="card" aria-labelledby="prep-title">
+      <p class="card-title" id="prep-title">👩‍🍳 Préparation</p>
+      <ol class="steps">
+        <li>Versez la farine dans un grand saladier, creusez un puits. Ajoutez sucre et sel.</li>
+        <li>Cassez les œufs au centre et mélangez doucement du centre vers les bords.</li>
+        <li>Versez le lait progressivement en fouettant pour éviter les grumeaux, puis incorporez le beurre fondu refroidi.</li>
+        <li>Pâte grumeleuse ? Un coup de mixeur ou de tamis et c'est réglé.</li>
+        <li><strong>Repos :</strong> 30 min minimum au frais (1 h idéalement). Les crêpes n'en seront que plus souples.</li>
+        <li>Poêle bien chaude, légèrement beurrée. Une louche, un geste circulaire pour étaler finement.</li>
+        <li>1 à 2 min par face : dès que les bords se décollent, on retourne. 30 s de l'autre côté.</li>
+      </ol>
+    </section>
+
+    <!-- ==== TIPS ==== -->
+    <section class="card" aria-labelledby="tips-title">
+      <p class="card-title" id="tips-title">💡 Conseils</p>
+      <div class="tips-grid">
+        <div class="tip">
+          <div class="tip-label">🥣 Trop épaisse</div>
+          Un filet de lait, cuillère par cuillère, en mélangeant entre chaque ajout.
+        </div>
+        <div class="tip">
+          <div class="tip-label">💧 Trop liquide</div>
+          Une c. à soupe de farine, fouettez fort, puis 10 min de repos supplémentaire.
+        </div>
+        <div class="tip">
+          <div class="tip-label">🌿 Version végétale</div>
+          Lait d'avoine ou d'amande en remplacement 1:1. Texture légèrement différente, tout aussi bonne.
+        </div>
+        <div class="tip">
+          <div class="tip-label">⏰ Le repos, c'est la clé</div>
+          Le gluten se détend : crêpes plus moelleuses qui se retournent sans se déchirer.
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  Quantités de base : Marmiton « Crêpes de base » · Texte original · Aucune donnée collectée<br>
+  💡 Sur iPhone : Partager → « Sur l'écran d'accueil » pour l'installer comme une app
+</footer>
+
+<script>
+/* ============================================================
+   DATA — Recette de référence (Marmiton, « Crêpes de base », 3 œufs)
+   ============================================================ */
+const RECIPE = {
+  baseEggs: 3,
+  crepesPerBase: 12, // ~12 crêpes pour la recette de base
+  ingredients: [
+    { id: 'flour',  icon: '🌾', name: 'Farine',       baseQty: 250, unit: 'g',  roundTo: 5, type: 'weight' },
+    { id: 'milk',   icon: '🥛', name: 'Lait',          baseQty: 500, unit: 'ml', roundTo: 5, type: 'liquid' },
+    { id: 'eggs',   icon: '🥚', name: 'Œufs',          baseQty: 3,   unit: '',   roundTo: 1, type: 'count'  },
+    { id: 'butter', icon: '🧈', name: 'Beurre fondu',  baseQty: 30,  unit: 'g',  roundTo: 5, type: 'weight' },
+    { id: 'sugar',  icon: '🍬', name: 'Sucre',         baseQty: 15,  unit: 'g',  roundTo: 5, type: 'weight' },
+    { id: 'salt',   icon: '🧂', name: 'Sel',           baseQty: 1,   unit: null, roundTo: 1, type: 'salt'   },
+  ]
+};
+
+/* ============================================================
+   FONCTIONS PURES (testables)
+   ============================================================ */
+const roundToNearest = (v, m) => m > 0 ? Math.round(v / m) * m : v;
+
+function computeRecipe(eggCount) {
+  if (!Number.isInteger(eggCount) || eggCount < 1) return null;
+  const factor = eggCount / RECIPE.baseEggs;
+  const items = RECIPE.ingredients.map(ing => {
+    let qty, unit;
+    if (ing.type === 'count') {
+      qty = eggCount; unit = '';
+    } else if (ing.type === 'salt') {
+      qty = Math.max(1, Math.round(ing.baseQty * factor));
+      unit = qty === 1 ? 'pincée' : 'pincées';
+    } else {
+      qty = Math.max(ing.roundTo, roundToNearest(ing.baseQty * factor, ing.roundTo));
+      unit = ing.unit;
+    }
+    return { ...ing, qty, unit };
+  });
+  return { factor, items, crepes: Math.round(RECIPE.crepesPerBase * factor) };
+}
+
+function validateInput(raw) {
+  const t = String(raw).trim();
+  if (t === '') return { valid: false, msg: "Veuillez entrer un nombre d'œufs." };
+  const n = Number(t);
+  if (!Number.isFinite(n)) return { valid: false, msg: 'Valeur non numérique.' };
+  if (!Number.isInteger(n)) return { valid: false, msg: 'Entrez un entier (ex : 2, 4, 6).' };
+  if (n < 1) return { valid: false, msg: 'Minimum : 1 œuf.' };
+  if (n > 30) return { valid: false, msg: 'Maximum : 30 œufs.' };
+  return { valid: true, value: n };
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const $ = id => document.getElementById(id);
+const ingList = $('ing-list'), overlay = $('invalid-overlay'),
+      factorChip = $('factor-chip'), crepesChip = $('crepes-chip'),
+      eggDisplay = $('egg-display'), live = $('live-region');
+let prev = {};
+
+function render(result) {
+  if (!result) {
+    ingList.style.display = 'none';
+    overlay.classList.add('visible');
+    factorChip.textContent = '—';
+    crepesChip.textContent = '—';
+    eggDisplay.textContent = '?';
+    return;
+  }
+  overlay.classList.remove('visible');
+  ingList.style.display = 'flex';
+
+  const eggs = result.items.find(i => i.id === 'eggs').qty;
+  eggDisplay.textContent = eggs;
+  eggDisplay.classList.remove('pop'); void eggDisplay.offsetWidth; eggDisplay.classList.add('pop');
+
+  factorChip.textContent = '×' + result.factor.toFixed(2).replace('.', ',');
+  crepesChip.textContent = result.crepes;
+
+  ingList.innerHTML = result.items.map(it => {
+    const changed = prev[it.id] !== undefined && prev[it.id] !== it.qty;
+    const u = it.unit ? `<span class="unit"> ${it.unit}</span>` : '';
+    return `<div class="ing-row ${changed ? 'updated' : ''}">
+      <span class="ing-name"><span class="ing-icon" aria-hidden="true">${it.icon}</span>${it.name}</span>
+      <span class="ing-qty">${it.qty}${u}</span>
+    </div>`;
+  }).join('');
+
+  result.items.forEach(it => prev[it.id] = it.qty);
+  setTimeout(() => document.querySelectorAll('.ing-row.updated')
+    .forEach(el => el.classList.remove('updated')), 700);
+
+  live.textContent = `Recette pour ${eggs} œufs, environ ${result.crepes} crêpes.`;
+}
+
+/* ============================================================
+   CONTROLLER
+   ============================================================ */
+const input = $('eggs-input'), err = $('err');
+let timer = null;
+
+function update(raw) {
+  const v = validateInput(raw);
+  if (!v.valid) {
+    input.classList.add('invalid');
+    err.textContent = v.msg;
+    err.classList.add('visible');
+    render(null);
+    return;
+  }
+  input.classList.remove('invalid');
+  err.classList.remove('visible');
+  render(computeRecipe(v.value));
+}
+
+input.addEventListener('input', () => {
+  clearTimeout(timer);
+  timer = setTimeout(() => update(input.value), 120);
+});
+
+$('btn-plus').addEventListener('click', () => {
+  const n = Math.min(30, (parseInt(input.value, 10) || 0) + 1);
+  input.value = n; update(n);
+});
+
+$('btn-minus').addEventListener('click', () => {
+  const n = Math.max(1, (parseInt(input.value, 10) || 2) - 1);
+  input.value = n; update(n);
+});
+
+$('reset-btn').addEventListener('click', () => {
+  input.value = RECIPE.baseEggs; prev = {}; update(RECIPE.baseEggs);
+});
+
+update(RECIPE.baseEggs);
+</script>
+</body>
+</html>
